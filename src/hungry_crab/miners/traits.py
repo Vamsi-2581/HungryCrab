@@ -179,6 +179,7 @@ class TraitsMiner:
         "ai_config",
         "history",
         "branches",
+        "signals",
     )
     json_file = "traits.json"
     md_file = None
@@ -318,6 +319,11 @@ class TraitsMiner:
             "has_docs_site": docs["docs_site"] is not None,
             "docs_site": docs["docs_site"],
             "docs_dir": docs["docs_dir"],
+            "has_wiki": bool(as_dict(docs.get("wiki")).get("page_count")),
+            "wiki_pages": as_dict(docs.get("wiki")).get("page_count", 0),
+            "has_documentation": bool(
+                docs["docs_dir"] or docs["docs_site"] or as_dict(docs.get("wiki")).get("page_count")
+            ),
             "semver_tags": bool(tags.get("semver_count")),
             "tag_count": tags.get("count", 0),
             "latest_tag": tags.get("latest"),
@@ -378,8 +384,12 @@ class TraitsMiner:
             "archived": repo_meta.get("archived"),
             "is_fork": repo_meta.get("fork"),
             "topics": repo_meta.get("topics"),
-            "has_wiki": repo_meta.get("has_wiki"),
+            "wiki_enabled": repo_meta.get("has_wiki"),
             "has_discussions": repo_meta.get("has_discussions"),
             "default_branch": repo_meta.get("default_branch") or branches.get("default_branch"),
+            "ci_sample_runs": ctx.data("signals").get("runs", {}).get("count", 0),
+            "ci_rerun_recoveries": ctx.data("signals")
+            .get("runs", {})
+            .get("job_rerun_recoveries", 0),
         }
         return MinerResult(self.name, {"schema": "hungry-crab.traits/1", "traits": traits})

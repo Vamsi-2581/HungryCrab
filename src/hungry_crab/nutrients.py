@@ -34,7 +34,8 @@ CATEGORIES: tuple[str, ...] = (
 # somebody forgot. Every entry here names the milestone that owes the producer, and
 # `tests/test_categories.py` refuses a declared category that is neither produced nor listed.
 DEFERRED_CATEGORIES: dict[str, str] = {
-    "code": "0.4 Deep Bite: symbol-level nutrients from tree-sitter symbols and the call graph",
+    "code": "0.4 Deep Bite, postponed on 2026-10-22: symbol-level nutrients need a syntax index, "
+    "and the optional tree-sitter path waits for a real evidence gap",
 }
 SERVE_AS: tuple[str, ...] = ("pr", "issue", "idea")
 EFFORTS: tuple[str, ...] = ("S", "M", "L")
@@ -89,6 +90,7 @@ class Candidate:
     risk: str = "low"
     value: float = 0.5
     uptake: float = 1.0
+    uptake_kind: str = "same_stack"
     evidence: list[Evidence] = field(default_factory=list)
     tags: list[str] = field(default_factory=list)
     origin: str = ContentOrigin.UNKNOWN.value
@@ -99,6 +101,8 @@ class Candidate:
     how: str = ""
     status: str = "proposed"
     trace: dict[str, Any] = field(default_factory=dict)
+    material: str = "code"
+    license_policy_reason: str = ""
 
     def __post_init__(self) -> None:
         # Issue titles and discussion prose are not licensed by the repository, whatever a
