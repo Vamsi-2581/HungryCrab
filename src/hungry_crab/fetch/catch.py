@@ -8,16 +8,20 @@ depth 1, tree-only). Nothing inside the clone is ever executed.
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import stat
+import sys
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 from ..cache import Slug, prey_paths
-from ..errors import UsageError
+from ..cache import cache_root as default_cache_root
+from ..errors import CrabError, UsageError
+from ..fs import is_reparse_point
 from .git import GitRunner
 from .github import GitHubClient
 from .issues import fetch_issues, write_issues
@@ -71,14 +75,67 @@ def parse_since(text: str, *, now: datetime | None = None) -> date:
         ) from exc
 
 
-def rmtree_force(path: Path) -> None:
-    """``shutil.rmtree`` that copes with read-only git objects on Windows."""
-    for child in path.rglob("*"):
+def _require_real_entries(item: Path, *, cache_root: Path) -> os.stat_result:
+    """Refuse ``item`` unless every component below ``cache_root`` down to it is a real entry.
+
+    ``cache_root`` and its ancestors are the user's choice and are not inspected: ``~/.cache``
+    on a data disk, ``CRAB_CACHE_DIR`` in a junctioned folder or ``/home -> /var/home`` are
+    ordinary setups. Below the root everything is the crab's own, so a symlink or a Windows
+    reparse point there is refused rather than followed. Returns the ``lstat`` of ``item``.
+    """
+    try:
+        parts = item.absolute().relative_to(cache_root.absolute()).parts
+    except ValueError:
+        parts = ()
+    if not parts or ".." in parts:
+        raise CrabError(f"refusing cache deletion of {item}: not inside the cache {cache_root}")
+    component = cache_root.absolute()
+    for part in parts:
+        component /= part
         try:
-            child.chmod(child.stat().st_mode | stat.S_IWRITE)
-        except OSError:
-            continue
-    shutil.rmtree(path)
+            info = component.lstat()
+        except OSError as exc:
+            raise CrabError(f"cannot inspect cache deletion path {component}: {exc}") from exc
+        real = stat.S_ISDIR(info.st_mode) or stat.S_ISREG(info.st_mode)
+        if not real or is_reparse_point(info):
+            raise CrabError(f"refusing cache deletion through link/reparse path {component}")
+    return info
+
+
+def rmtree_force(path: Path, *, cache_root: Path) -> None:
+    """Delete one directory inside ``cache_root`` without changing permissions outside it.
+
+    A failed deletion can leave cache debris. It is safer to report that state than
+    to chmod symlink/junction targets or hide a partially removed checkout.
+    """
+    if not stat.S_ISDIR(_require_real_entries(path, cache_root=cache_root).st_mode):
+        raise CrabError(f"refusing cache deletion of {path}: not a directory")
+
+    def retry_readonly(func: Callable[..., object], filename: str, _failure: object) -> None:
+        """Repair only the item that failed, after refusing any link/junction component."""
+        item = Path(filename)
+        if not item.absolute().is_relative_to(path.absolute()):
+            raise CrabError(f"refusing cache cleanup outside its root: {item}")
+        _require_real_entries(item, cache_root=cache_root)
+        try:
+            item.chmod(item.lstat().st_mode | stat.S_IWRITE)
+            func(filename)
+        except OSError as exc:
+            raise CrabError(f"cannot remove read-only cache entry {item}: {exc}") from exc
+
+    try:
+        if sys.version_info >= (3, 12):
+            shutil.rmtree(path, onexc=retry_readonly)
+        else:
+            shutil.rmtree(path, onerror=retry_readonly)
+    except OSError as exc:
+        raise CrabError(
+            f"cannot safely remove cached files in {path}: {exc}",
+            hint=(
+                "Close programs holding files and inspect what remains. "
+                "No recursive chmod traversal was attempted."
+            ),
+        ) from exc
 
 
 def clone_arguments(options: CatchOptions, *, now: datetime | None = None) -> list[str]:
@@ -103,14 +160,15 @@ def catch(
 ) -> CatchResult:
     """Clone or refresh the prey. ``source_url`` overrides the GitHub URL (used by tests)."""
     opts = options or CatchOptions()
-    paths = prey_paths(slug, cache_root)
+    root = cache_root if cache_root is not None else default_cache_root()
+    paths = prey_paths(slug, root)
     paths.root.mkdir(parents=True, exist_ok=True)
     repo_dir = paths.repo
     url = source_url or slug.clone_url
 
     if opts.force and repo_dir.exists():
         log(f"removing previous clone at {repo_dir}")
-        rmtree_force(repo_dir)
+        rmtree_force(repo_dir, cache_root=root)
 
     updated = False
     if (repo_dir / ".git").exists():
@@ -123,7 +181,7 @@ def catch(
         updated = True
     else:
         if repo_dir.exists():
-            rmtree_force(repo_dir)
+            rmtree_force(repo_dir, cache_root=root)
         log(f"cloning {url} into {repo_dir}")
         parent = GitRunner(paths.root, timeout=3600)
         parent.run(*clone_arguments(opts, now=now), url, str(repo_dir))
