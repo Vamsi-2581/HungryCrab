@@ -138,7 +138,7 @@ def _plain_generic(generic: str) -> str:
     parts: list[str] = []
     position = 0
     removed_tag = False
-    nested_types = re.compile(r"(?<=[A-Za-z0-9_])<[A-Z][A-Za-z0-9_]*(?:\\s*,\\s*[A-Z][A-Za-z0-9_]*)*>")
+    nested_types = re.compile(r"(?<=[A-Za-z0-9_])<[A-Z][A-Za-z0-9_]*(?:\s*,\s*[A-Z][A-Za-z0-9_]*)*>")
     for match in nested_types.finditer(inner):
         cleaned, count = _HEADING_TAG_RE.subn("", inner[position : match.start()])
         parts.append(cleaned)
@@ -218,7 +218,7 @@ def split_frontmatter(text: str) -> tuple[str | None, str]:
 
     Found line by line: the first line is `---`, and the block ends at the first later line
     that is `---` or `...` (trailing whitespace allowed). The regexes this replaces could end
-    their opening `\\s*\\n` at every leading newline and rescan the rest of the text from each,
+    their opening `\s*\\n` at every leading newline and rescan the rest of the text from each,
     which is quadratic: 100,000 newlines after `---` took 48.7 s. This is one pass.
     """
     first = text.find("\n")
