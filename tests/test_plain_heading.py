@@ -15,6 +15,8 @@ from hungry_crab.miners.wiki import plain_heading
         # This repository's own heading in docs/design/01-concept-and-skill.md.
         ("`/crab:eat <prey> [--maw .]`", "`/crab:eat <prey> [--maw .]`"),
         ("Use `Vec<T>` here", "Use `Vec<T>` here"),
+        ("HashMap<K, V> and Option<T>", "HashMap<K, V> and Option"),
+        ("List<String, List<Item>>", "List<String, List<Item>>"),
         ("``a ` b``", "``a ` b``"),
         ("when a <= b", "when a &lt;= b"),
         ("a < b > c", "a < b > c"),
