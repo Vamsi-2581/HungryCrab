@@ -9,6 +9,9 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- **Catch:** `--since` values beyond the representable date range (e.g. 4301-digit durations)
+  are now rejected with a usage error instead of being passed through
+  ([#321](https://github.com/drevendev/HungryCrab/issues/321)).
 - Preserve comma-separated generic type arguments such as `HashMap<K, V>` in wiki headings while
   continuing to strip inline HTML ([#390](https://github.com/drevendev/HungryCrab/issues/390)).
 
