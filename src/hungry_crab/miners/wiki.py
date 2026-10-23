@@ -121,7 +121,7 @@ def _generic_type_spans(text: str) -> list[tuple[int, int]]:
                     break
             elif char == ",":
                 has_comma = True
-            elif not (char.isalnum() or char in "_. 	"):
+            elif not (char.isalnum() or char in "_.," or char.isspace()):
                 cursor = position + 1
                 break
             position += 1
