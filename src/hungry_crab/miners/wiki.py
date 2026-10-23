@@ -142,9 +142,8 @@ def _plain_text(segment: str) -> str:
         text = _HEADING_TAG_RE.sub("", text)
         parts.append(_OPENING_ANGLE_RE.sub("&lt;", text).replace("](", "] ("))
         generic = segment[start:end]
-        generic = _HEADING_TAG_RE.sub(
-            lambda match: _OPENING_ANGLE_RE.sub("&lt;", match.group(0)), generic
-        )
+        generic = _HEADING_TAG_RE.sub("", generic)
+        generic = _OPENING_ANGLE_RE.sub("&lt;", generic)
         parts.append(generic.replace("](", "] ("))
         position = end
     text = segment[position:]
