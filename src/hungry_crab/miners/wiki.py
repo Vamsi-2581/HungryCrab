@@ -132,6 +132,25 @@ def _generic_type_spans(text: str) -> list[tuple[int, int]]:
     return spans
 
 
+def _plain_generic(generic: str) -> str:
+    """Keep type brackets as text while removing any nested HTML tags."""
+    inner = generic[1:-1]
+    parts: list[str] = []
+    position = 0
+    removed_tag = False
+    nested_types = re.compile(r"(?<=[A-Za-z0-9_])<[A-Z][A-Za-z0-9_]*(?:\\s*,\\s*[A-Z][A-Za-z0-9_]*)*>")
+    for match in nested_types.finditer(inner):
+        cleaned, count = _HEADING_TAG_RE.subn("", inner[position : match.start()])
+        parts.append(cleaned)
+        removed_tag |= count > 0
+        parts.append(_OPENING_ANGLE_RE.sub("&lt;", match.group()))
+        position = match.end()
+    cleaned, count = _HEADING_TAG_RE.subn("", inner[position:])
+    parts.append(cleaned)
+    removed_tag |= count > 0
+    return "&lt;" + "".join(parts) + ("" if removed_tag else ">")
+
+
 def _plain_text(segment: str) -> str:
     parts: list[str] = []
     position = 0
@@ -142,9 +161,7 @@ def _plain_text(segment: str) -> str:
         text = _HEADING_TAG_RE.sub("", text)
         parts.append(_OPENING_ANGLE_RE.sub("&lt;", text).replace("](", "] ("))
         generic = segment[start:end]
-        generic = _HEADING_TAG_RE.sub("", generic)
-        generic = _OPENING_ANGLE_RE.sub("&lt;", generic)
-        parts.append(generic.replace("](", "] ("))
+        parts.append(_plain_generic(generic).replace("](", "] ("))
         position = end
     text = segment[position:]
     text = _HEADING_IMAGE_RE.sub("", text)
