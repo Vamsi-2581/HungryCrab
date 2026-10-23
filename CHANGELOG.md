@@ -7,6 +7,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Preserve comma-separated generic type arguments such as `HashMap<K, V>` in wiki headings while continuing to strip inline HTML ([#390](https://github.com/drevendev/HungryCrab/issues/390)).
+
 ## [0.6.1] - 2026-10-22
 
 A security release on 0.6.0 Everywhere, with no new features. It fixes two vulnerabilities
