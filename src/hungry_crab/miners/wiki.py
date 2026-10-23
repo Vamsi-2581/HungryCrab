@@ -138,14 +138,14 @@ def _plain_text(segment: str) -> str:
     for start, end in _generic_type_spans(segment):
         text = segment[position:start]
         text = _HEADING_IMAGE_RE.sub("", text)
-        text = _HEADING_LINK_RE.sub(r"\\1", text)
+        text = _HEADING_LINK_RE.sub(r"\1", text)
         text = _HEADING_TAG_RE.sub("", text)
         parts.append(_OPENING_ANGLE_RE.sub("&lt;", text).replace("](", "] ("))
         parts.append(segment[start:end])
         position = end
     text = segment[position:]
     text = _HEADING_IMAGE_RE.sub("", text)
-    text = _HEADING_LINK_RE.sub(r"\\1", text)
+    text = _HEADING_LINK_RE.sub(r"\1", text)
     text = _HEADING_TAG_RE.sub("", text)
     # Unhandled tag-like fragments are defused; a '<' before whitespace is ordinary text.
     parts.append(_OPENING_ANGLE_RE.sub("&lt;", text).replace("](", "] ("))
