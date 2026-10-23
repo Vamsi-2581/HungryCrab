@@ -7,6 +7,60 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **PyPI:** releases are published to [PyPI](https://pypi.org/project/hungry-crab/) as
+  `hungry-crab` by `.github/workflows/publish.yml`, which runs when a GitHub release is
+  published, refuses unless the run's tag names the packaged release version, builds the sdist
+  and wheel from the tag, checks them with `twine check --strict` and uploads them through
+  Trusted Publishing, with no stored token; only the upload job may request an OIDC token, and
+  every action is pinned by commit. `CONTRIBUTING.md` carries the step and how to verify it
+  ([#395](https://github.com/drevendev/HungryCrab/issues/395)).
+
+### Fixed
+
+- **Feeder:** a submodule of the public calling repository, or a directory inside one, no
+  longer counts as a tracked directory of the caller; its gitlink is another repository, so the
+  maw is confirmed by its own origin through the forge, and refused without
+  `allow-private-artifact` when nothing confirms it. A maw confirmed public no longer carries
+  a private submodule into the artifact either: every checked-out submodule under it, nested
+  ones included, must have an origin the forge confirms public, or the run is refused naming
+  the submodule; an uninitialised one holds nothing and is fine
+  ([#386](https://github.com/drevendev/HungryCrab/issues/386)).
+- **Publication:** `serve --as pr-branch` no longer refuses its own pull-request body. The
+  pre-push secret scan reads the commit, blob, tree and raw URLs of GitHub and GitLab, the
+  shape of the crab's evidence links, as a public repository, a commit and a path judged
+  apart, so a hex commit no longer joins a mixed-case path into one high-entropy token; the
+  path is only what the crab's own links contain, and it is still judged as any path is
+  ([#387](https://github.com/drevendev/HungryCrab/issues/387)).
+- **Publication:** the 0.6.1 secret scan no longer refuses ordinary text it took for
+  credentials: a digest after the `@` (`docker://alpine:3.20@sha256:…`) is not a host, so an
+  image pinned by digest is not a password in a URL, the Slack shape lists only Slack's
+  prefixes (`xox[abcdeprs]-`, `xapp-`), so `xoxo` is a word, and `X-` header names, the
+  Kubernetes Secret a chart's `existingSecret` names and YAML or JSON translations under
+  `locales/`, `i18n/`, `translations/` and similar directories (and locale-named files under
+  Laravel's `lang/`) are not credential literals
+  ([#388](https://github.com/drevendev/HungryCrab/issues/388)).
+- **No body text in summaries:** nothing inside an HTML block that runs to an end condition
+  (`<pre>`, `<script>`, `<style>`, `<textarea>`, comments, processing instructions,
+  declarations and CDATA) is a heading until that condition, blank lines included, such a block
+  or a fence inside a list item or table leaves the line after it body text, and a link
+  reference definition is never setext heading text, so usage text and URLs underlined with
+  `---` or `===` no longer reach `docs.md`, `ai.md` or the wiki outline
+  ([#389](https://github.com/drevendev/HungryCrab/issues/389)).
+- **Documentation:** `SECURITY.md` states the supported versions as they are: security fixes
+  land on `master` and ship in a patch release of the latest minor version (0.6.x today), older
+  tags get no backports, and advisories name the first fixed release; the README's
+  `crab --version` example no longer names a stale version
+  ([#391](https://github.com/drevendev/HungryCrab/issues/391)).
+- **Installation:** the README and the Everywhere guide no longer say that the package is not
+  on PyPI or that the `hungry-crab` name there is not ours; `uv tool install hungry-crab` (or
+  `pipx install hungry-crab`) is the stable path, and the git URL tracks `master`. `crab update`
+  recognises a CLI installed from the index, compares it with the latest release on PyPI and
+  prints `uv tool upgrade hungry-crab` (or the pipx or pip equivalent) instead of reporting
+  `unknown` and suggesting a reinstall from git; a git install still follows `master`
+  ([#395](https://github.com/drevendev/HungryCrab/issues/395)).
+
 ## [0.6.1] - 2026-10-22
 
 A security release on 0.6.0 Everywhere, with no new features. It fixes two vulnerabilities
