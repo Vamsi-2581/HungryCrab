@@ -21,6 +21,9 @@ from hungry_crab.miners.wiki import plain_heading
         ("Tuple<A, <Iframe>>", "Tuple&lt;A,"),
         ("crab eat <prey> --maw <path>", "crab eat --maw"),
         ("List<String, List<Item>>", "List&lt;String, List&lt;Item>>"),
+        ("See [HashMap<K, V>](https://evil.example)", "See HashMap&lt;K, V>"),
+        ("See ![HashMap<K, V>](https://tracker.example/pixel)", "See"),
+        ("Use <b> `Vec<T>` <i> here", "Use `Vec<T>` here"),
         ("``a ` b``", "``a ` b``"),
         ("when a <= b", "when a &lt;= b"),
         ("a < b > c", "a < b > c"),
@@ -44,3 +47,14 @@ def test_code_span_matching_is_linear() -> None:
     started = time.perf_counter()
     plain_heading(hostile)
     assert time.perf_counter() - started < 1.0
+
+
+@pytest.mark.parametrize(
+    "hostile",
+    ["<A, " * 100_000, "<A, " * 100_000 + ">" * 100_000],
+    ids=["unclosed", "nested"],
+)
+def test_generic_span_matching_is_linear(hostile: str) -> None:
+    started = time.perf_counter()
+    plain_heading(hostile)
+    assert time.perf_counter() - started < 2.0
