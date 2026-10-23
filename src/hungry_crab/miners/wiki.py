@@ -149,7 +149,7 @@ def _plain_text(segment: str) -> str:
     text = _HEADING_TAG_RE.sub("", text)
     # Unhandled tag-like fragments are defused; a '<' before whitespace is ordinary text.
     parts.append(_OPENING_ANGLE_RE.sub("&lt;", text).replace("](", "] ("))
-    return "".join(parts)
+    return " ".join("".join(parts).split())
 
 
 def plain_heading(title: str) -> str:
