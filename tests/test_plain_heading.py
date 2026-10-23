@@ -19,7 +19,7 @@ from hungry_crab.miners.wiki import plain_heading
         ("A<B, <Script>>alert(1)</Script>", "A&lt;B, alert(1)"),
         ("Map<K, <Img Src>> x", "Map&lt;K, x"),
         ("Tuple<A, <Iframe>>", "Tuple&lt;A, "),
-        ("crab eat <prey> --maw <path>", "crab eat  --maw "),
+        ("crab eat <prey> --maw <path>", "crab eat --maw"),
         ("List<String, List<Item>>", "List<String, List<Item>>"),
         ("``a ` b``", "``a ` b``"),
         ("when a <= b", "when a &lt;= b"),
