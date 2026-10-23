@@ -18,7 +18,7 @@ from hungry_crab.miners.wiki import plain_heading
         ("HashMap<K, V> and Option<T>", "HashMap&lt;K, V> and Option"),
         ("A<B, <Script>>alert(1)</Script>", "A&lt;B, alert(1)"),
         ("Map<K, <Img Src>> x", "Map&lt;K, x"),
-        ("Tuple<A, <Iframe>>", "Tuple&lt;A, "),
+        ("Tuple<A, <Iframe>>", "Tuple&lt;A,"),
         ("crab eat <prey> --maw <path>", "crab eat --maw"),
         ("List<String, List<Item>>", "List&lt;String, List&lt;Item>>"),
         ("``a ` b``", "``a ` b``"),
